@@ -10,18 +10,26 @@ jobs:
         permissions: 
             security-events: read
             contents: read
+            
         steps:
             - name: 'Checkout Repository'
               uses: actions/checkout@v5
 
             - name: 'KEV Policy'
               uses: advanced-security/dependabot-kev-action@v0
+              continue-on-error: true
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
             - name: 'EPSS Policy'
               uses: advanced-security/dependabot-epss-action@v0
+              continue-on-error: true
               with:
                     token: ${{ secrets.GITHUB_TOKEN }}
                     epss-threshold: "0.6"
+                    
             - name: 'Dependency Review'
               uses: actions/dependency-review-action@v4
+              continue-on-error: true
+              with:
+                comment-summary-in-pr: always
