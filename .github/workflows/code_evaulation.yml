@@ -2,6 +2,7 @@ name: Code Evaluation
 on:
     pull_request: 
             branches: Main
+    workflow_dispatch:         
 jobs:
     Code-Security: 
         name: Code Security
