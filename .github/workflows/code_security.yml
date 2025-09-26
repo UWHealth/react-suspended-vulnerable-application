@@ -1,0 +1,58 @@
+name: Code Security
+on:
+    pull_request: 
+            branches: [ "main" ]
+            types: [opened, synchronize, reopened]
+    workflow_dispatch:         
+jobs:
+    KEV:
+        name: 'KEV Policy'
+        runs-on: ubuntu-latest
+        permissions: 
+            security-events: read
+            contents: read
+            pull-requests: write
+        steps:
+          - uses: actions/create-github-app-token@v2
+            id: app-token
+            with:
+              app-id: ${{ secrets.UWH_SECURITY_BOT_ID }}
+              private-key: ${{ secrets.UWH_SECURITY_BOT_KEY }}
+          - uses: advanced-security/dependabot-kev-action@v0
+            env:
+              GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+    EPSS:
+        name: 'EPSS Policy'
+        runs-on: ubuntu-latest      
+        permissions: 
+            security-events: read
+            contents: read
+            pull-requests: write            
+        steps:
+          - uses: actions/create-github-app-token@v2
+            id: app-token
+            with:
+              app-id: ${{ secrets.UWH_SECURITY_BOT_ID }}
+              private-key: ${{ secrets.UWH_SECURITY_BOT_KEY }}          
+          - uses: advanced-security/dependabot-epss-action@v0
+            with:
+              token: ${{ steps.app-token.outputs.token }}
+              epss-threshold: "0.2"
+
+    Dep-Review:
+        name: 'Dependency Review'
+        runs-on: ubuntu-latest   
+        permissions: 
+            security-events: read
+            contents: read
+            pull-requests: write      
+        steps:
+            - name: 'Checkout Repository'
+              uses: actions/checkout@v5
+          
+            - name: 'Dependency Review'
+              uses: actions/dependency-review-action@v4
+              continue-on-error: true
+              with:
+                comment-summary-in-pr: always 
+                  
