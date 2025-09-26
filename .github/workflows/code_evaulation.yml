@@ -1,46 +1,66 @@
-name: Code Evaluation
+name: Code Security
 on:
     pull_request: 
             branches: [ "main" ]
     workflow_dispatch:         
 jobs:
-    Code-Security: 
-        name: Code Security
+    App:
+        name: Getting App...
         runs-on: ubuntu-latest
+        permissions: {}
+        outputs:
+          app_token: ${{ steps.app-token.outputs.token }}
+        steps:
+          - uses: actions/create-github-app-token@v2
+            id: app-token
+            with:
+              app-id: ${{ secrets.UWH_SECURITY_BOT_ID }}
+              private-key: ${{ secrets.UWH_SECURITY_BOT_KEY }}
+    KEV:
+        name: 'KEV Policy'
+        runs-on: ubuntu-latest
+        needs: App
         permissions: 
             security-events: read
             contents: read
-            
+            pull-requests: write
+        steps:
+            - uses: advanced-security/dependabot-kev-action@v0
+              env:
+                GITHUB_TOKEN: ${{ needs.App.outputs.app_token }}
+    EPSS:
+        name: 'EPSS Policy'
+        runs-on: ubuntu-latest
+        needs: App        
+        permissions: 
+            security-events: read
+            contents: read
+            pull-requests: write            
+        steps:
+          - uses: advanced-security/dependabot-epss-action@v0
+            with:
+              token: ${{ needs.App.outputs.app_token }}
+              epss-threshold: "0.2"
+
+    Dep-Review:
+        name: 'Dependency Review'
+        runs-on: ubuntu-latest   
+        permissions: 
+            security-events: read
+            contents: read
+            pull-requests: write      
         steps:
             - name: 'Checkout Repository'
               uses: actions/checkout@v5
-
-            - uses: actions/create-github-app-token@v2
-              id: app-token
-              with:
-                app-id: ${{ secrets.UWH_SECURITY_BOT_ID }}
-                private-key: ${{ secrets.UWH_SECURITY_BOT_KEY }}              
-
-            - name: 'KEV Policy'
-              uses: advanced-security/dependabot-kev-action@v0
-              continue-on-error: true
-              env:
-                GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-
-            - name: 'EPSS Policy'
-              uses: advanced-security/dependabot-epss-action@v0
-              continue-on-error: true
-              with:
-                    token: ${{ steps.app-token.outputs.token }}
-                    epss-threshold: "0.2"
-
+          
             - name: 'Dependency Review'
               uses: actions/dependency-review-action@v4
               continue-on-error: true
               with:
-                comment-summary-in-pr: always
-    Code-Scanning:
-        name: Other Code Scanning
+                comment-summary-in-pr: always 
+                  
+    Sonar-Scanning:
+        name: Sonar Code Scanning
         runs-on: ubuntu-latest
         steps:
           - run: echo "Future Location of Sonar Cube Scanner"
