@@ -1,0 +1,26 @@
+name: Code Evaluation
+on:
+    pull_request: 
+            branches: Main
+jobs:
+    Code-Security: 
+        name: Code Security
+        runs-on: ubuntu-latest
+        permissions: 
+            security-events: read
+            contents: read
+        steps:
+            - name: 'Checkout Repository'
+              uses: actions/checkout@v5
+
+            - name: 'KEV Policy'
+              uses: advanced-security/dependabot-kev-action@v0
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            - name: 'EPSS Policy'
+              uses: advanced-security/dependabot-epss-action@v0
+              with:
+                    token: ${{ secrets.GITHUB_TOKEN }}
+                    epss-threshold: "0.6"
+            - name: 'Dependency Review'
+              uses: actions/dependency-review-action@v4
