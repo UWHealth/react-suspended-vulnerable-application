@@ -39,3 +39,8 @@ jobs:
               continue-on-error: true
               with:
                 comment-summary-in-pr: always
+    Code-Scanning:
+        name: Other Code Scanning
+        runs-on: ubuntu-latest
+        steps:
+          - run: echo "Future Location of Sonar Cube Scanner"
